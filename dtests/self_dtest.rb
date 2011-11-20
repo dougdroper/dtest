@@ -1,12 +1,9 @@
 require File.join(File.dirname(__FILE__), '../lib', 'dtest')
 
 class TestClass < Dtest::Assertions
-  def it_passes
+  def it_passes_test
     assert(true, true) 
   end
 end
 
-Dir.foreach('dtests') do |file|
-  next unless ! file == '.' || ! file == '..' || file =~ /dtest/
-  Dtest::Able.new(file)
-end
+Dtest::Able.new("dtests")
