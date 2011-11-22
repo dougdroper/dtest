@@ -5,6 +5,11 @@ class DtestClass < Dtest::Assertions
     assert(true, true) 
   end
 
+  def it_counts_dtest_twice
+    assert(true, true)
+    assert_not(false, false)
+  end
+
   def it_fails_dtest
     assert(true, false) 
   end

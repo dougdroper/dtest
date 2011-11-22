@@ -1,5 +1,12 @@
 module Dtest
   class Assertions
+    attr_reader :count, :dtests_messages
+
+    def initialize
+      @count = 0
+      @dtests_messages = []
+    end
+
     def self.inherited(klass)
       @tests ||= [] << klass
     end
@@ -9,11 +16,15 @@ module Dtest
     end
 
     def assert(expected, actual)
-      expected == actual ? "." : "f"
+      @count += 1
+      msg = expected == actual ? "." : "f"
+      @dtests_messages << msg
     end
 
     def assert_not(expected, actual)
-      expected == actual ? "f" : "."
+      @count += 1
+      msg = expected == actual ? "f" : "."
+      @dtests_messages << msg
     end
 
     def pending
@@ -23,37 +34,43 @@ module Dtest
 
   class Able
     def initialize(directory)
-      require_files(directory)
       @count_dtests = 0
-      @dtests = []
-      run_dtests
+      @dtests_messages = []
+      start_dtests(directory)
     end
 
     private
 
-    def require_files(directory)
+    def require_dtest_files(directory)
       Dir["#{directory}/*"].each do |file|
         next unless ! file == '.' || ! file == '..' || file =~ /dtest/
         require file
       end
     end
 
-    def run_dtests
-      Dtest::Assertions.get_tests.each do |klass|
-        klass.instance_methods.select{|m| m =~ /_dtest/ }.each do |m|
-          @count_dtests += 1 
-          @dtests << klass.new.send(m)
-        end
-      end
+    def start_dtests(directory)
+      require_dtest_files(directory)
+      run_dtests
       print_dtests_results
     end
 
-    def print_dtests_results
-      passed = @dtests.select {|r| r == "."}.count
-      failed = @dtests.select {|r| r == "f"}.count
-      pending = @dtests.select {|r| r == "p"}.count
+    def run_dtests
+      Dtest::Assertions.get_tests.each do |klass|
+        klass.instance_methods.select{|m| m =~ /_dtest/ }.each do |m|
+          assertion = klass.new
+          assertion.send(m)
+          @count_dtests += assertion.count
+          @dtests_messages << assertion.dtests_messages
+        end
+      end
+    end
 
-      @dtests.each {|result| print result}
+    def print_dtests_results
+      passed = @dtests_messages.flatten.select {|r| r == "."}.count
+      failed = @dtests_messages.flatten.select {|r| r == "f"}.count
+      pending = @dtests_messages.flatten.select {|r| r == "p"}.count
+
+      @dtests_messages.each {|result| print result}
       puts
       puts
       puts "#{@count_dtests} tests ran, #{passed} passed and #{failed} failed"
