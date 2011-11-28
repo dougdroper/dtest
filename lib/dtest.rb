@@ -32,14 +32,14 @@ module Dtest
           assertion = klass.new
           begin
             assertion.send(m)
-            print "." * assertion.count
+            print green("." * assertion.count)
             @passed += assertion.count 
           rescue FailException => e
-            print "f"
+            print red "f"
             @failed += 1
             @dtests_messages << [e.error_message + "\n#{klass}, \##{m} \n\n"]
           rescue PendingExcepttion => e
-            print "P"
+            print yellow "P"
             @pending += 1
             @dtests_messages << ["\n PENDING #{klass}, \##{m} \n\n"]
           end
@@ -48,10 +48,18 @@ module Dtest
       end
     end
 
-    def print_dtests_results
-      @dtests_messages.flatten!.each {|result| puts "\n" + result}
+    def colorize(text, color_code)
+      "\e[#{color_code}m#{text}\e[0m"
+    end
 
-      puts "\n\n#{@passed + @failed + @pending} tests ran, #{@passed} passed and #{@failed} failed"
+    def red(text); colorize(text, 31); end
+    def green(text); colorize(text, 32); end
+    def yellow(text); colorize(text, 33); end
+
+    def print_dtests_results
+      @dtests_messages.flatten!.each {|result| puts "\n" + red(result)}
+
+      puts "\n\n#{@passed + @failed + @pending} tests ran,  [e[32mDONEe[0m ] #{@passed} passed and #{@failed} failed"
       puts "You have #{@pending} pending" if @pending > 0
     end
   end

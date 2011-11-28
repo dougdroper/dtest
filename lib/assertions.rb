@@ -1,7 +1,10 @@
 require 'lib/exceptions'
+require 'lib/stubs'
 
 module Dtest
   class Assertions 
+    include Stubs
+    
     attr_reader :count, :dtests_messages
 
     def initialize
