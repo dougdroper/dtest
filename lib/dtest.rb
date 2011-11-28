@@ -1,41 +1,13 @@
+require 'lib/assertions'
+require 'lib/exceptions'
+
 module Dtest
-  class Assertions
-    attr_reader :count, :dtests_messages
-
-    def initialize
-      @count = 0
-      @dtests_messages = []
-    end
-
-    def self.inherited(klass)
-      @tests ||= [] << klass
-    end
-
-    def self.get_tests
-      @tests ||= []
-    end
-
-    def assert(expected, actual)
-      @count += 1
-      msg = expected == actual ? "." : "f"
-      @dtests_messages << msg
-    end
-
-    def assert_not(expected, actual)
-      @count += 1
-      msg = expected == actual ? "f" : "."
-      @dtests_messages << msg
-    end
-
-    def pending
-      "p"
-    end
-  end
-
   class Able
     def initialize(directory)
-      @count_dtests = 0
       @dtests_messages = []
+      @passed = 0
+      @failed = 0
+      @pending = 0
       start_dtests(directory)
     end
 
@@ -55,26 +27,32 @@ module Dtest
     end
 
     def run_dtests
-      Dtest::Assertions.get_tests.each do |klass|
+      Assertions.get_tests.each do |klass|
         klass.instance_methods.select{|m| m =~ /_dtest/ }.each do |m|
           assertion = klass.new
-          assertion.send(m)
-          @count_dtests += assertion.count
+          begin
+            assertion.send(m)
+            print "." * assertion.count
+            @passed += assertion.count 
+          rescue FailException => e
+            print "f"
+            @failed += 1
+            @dtests_messages << [e.error_message + "\n#{klass}, \##{m} \n\n"]
+          rescue PendingExcepttion => e
+            print "P"
+            @pending += 1
+            @dtests_messages << ["\n PENDING #{klass}, \##{m} \n\n"]
+          end
           @dtests_messages << assertion.dtests_messages
         end
       end
     end
 
     def print_dtests_results
-      passed = @dtests_messages.flatten.select {|r| r == "."}.count
-      failed = @dtests_messages.flatten.select {|r| r == "f"}.count
-      pending = @dtests_messages.flatten.select {|r| r == "p"}.count
+      @dtests_messages.flatten!.each {|result| puts "\n" + result}
 
-      @dtests_messages.each {|result| print result}
-      puts
-      puts
-      puts "#{@count_dtests} tests ran, #{passed} passed and #{failed} failed"
-      puts "You have #{pending} pending" if pending > 0
+      puts "\n\n#{@passed + @failed + @pending} tests ran, #{@passed} passed and #{@failed} failed"
+      puts "You have #{@pending} pending" if @pending > 0
     end
   end
 end

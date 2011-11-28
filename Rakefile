@@ -11,9 +11,6 @@ rescue Bundler::BundlerError => e
 end
 require 'rake'
 
-
-
-
 task :dtest do
   require File.join(File.dirname(__FILE__), 'lib', 'dtest')
   Dtest::Able.new("dtests")

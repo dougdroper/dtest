@@ -1,17 +1,21 @@
-require File.join(File.dirname(__FILE__), '../lib', 'dtest')
+require 'lib/assertions'
 
 class DtestClass < Dtest::Assertions
   def it_passes_dtest
-    assert(true, true) 
+    assert(true, true)
   end
 
   def it_counts_dtest_twice
     assert(true, true)
-    assert_not(false, false)
+    assert_not(false, true)
   end
 
   def it_fails_dtest
     assert(true, false) 
+  end
+
+  def it_fails_dtest_with_a_message
+    assert(true, false, "with a message") 
   end
 
   def it_fails_dtest_too
@@ -26,8 +30,9 @@ class DtestClass < Dtest::Assertions
     assert_not(true, true) 
   end
 
-  def it_pending_dtest
-    assert(false, true) 
+  def its_pending_dtest
     pending
+    puts "This should not get run"
+    assert(true, true)
   end
 end
