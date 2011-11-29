@@ -1,14 +1,14 @@
 require 'lib/assertions'
 require 'lib/exceptions'
+require 'lib/formatter'
 
 module Dtest
   class Able
     def initialize(directory)
-      @dtests_messages = []
-      @pending_messages = []
       @passed = 0
       @failed = 0
       @pending = 0
+      @formatter = Formatter.new
       start_dtests(directory)
     end
 
@@ -17,7 +17,11 @@ module Dtest
     def require_dtest_files(directory)
       Dir["#{directory}/*"].each do |file|
         next unless ! file == '.' || ! file == '..' || file =~ /dtest/
-        require file
+        if File.directory?(file)
+          require_dtest_files(file)
+        else 
+          require file
+        end
       end
     end
 
@@ -33,40 +37,26 @@ module Dtest
           assertion = klass.new
           begin
             assertion.send(m)
-            print green("." * assertion.count)
+            @formatter.pass_result(assertion.count)
             @passed += assertion.count 
           rescue FailException => e
-            print red "f"
+            @formatter.fail_result
+            @formatter.add_fail_message(e.error_message + "\n\n#{klass}, \##{m} \n" + e.backtrace[1].to_s)
             @failed += 1
-            @dtests_messages << [
-              e.error_message + 
-              "\n\n#{klass}, \##{m} \n" +
-              e.backtrace[1].to_s
-            ]
           rescue PendingExcepttion => e
-            print yellow "P"
+            @formatter.pending_result
             @pending += 1
-            @pending_messages << ["\n PENDING #{klass}, \##{m}"]
+            @formatter.add_pending_message("\n PENDING #{klass}, \##{m}")
           end
-          @dtests_messages << assertion.dtests_messages
+          STDOUT.flush
+          # sleep(0.5)
+          @formatter.add_fail_message(assertion.dtests_messages)
         end
       end
     end
 
-    def colour_dtest(text, color_code)
-      "\e[#{color_code}m#{text}\e[0m"
-    end
-
-    def red(text); colour_dtest(text, 31); end
-    def green(text); colour_dtest(text, 32); end
-    def yellow(text); colour_dtest(text, 33); end
-
     def print_dtests_results
-      @dtests_messages.flatten!.each {|result| puts "\n" + red(result)}
-      @pending_messages.flatten!.each {|result| puts "\n" + yellow(result)}
-
-      puts "\n\n#{@passed + @failed + @pending} tests ran, #{@passed} passed and #{@failed} failed"
-      puts "You have #{@pending} pending" if @pending > 0
+      @formatter.results({:passed => @passed, :failed => @failed, :pending => @pending})
     end
   end
 end
