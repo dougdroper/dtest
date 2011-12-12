@@ -1,38 +1,37 @@
 require 'lib/assertions'
 
 class DtestClass < Dtest::Assertions
-  def it_passes_dtest
+  dtest "should pass" do
     assert(true, true)
   end
 
-  def it_counts_dtest_twice
+  dtest "counts the test twice" do
     assert(true, true)
     assert_not(false, true)
   end
 
-  def it_fails_dtest
-    assert(true, false) 
+  dtest "should fail" do
+    assert(true, false)
   end
 
-  def it_fails_dtest_with_a_message
+  dtest "fails with a message" do
     assert(true, false, "with a message") 
   end
 
-  def it_fails_dtest_too
-    assert(false, true) 
-  end
-
-  def it_passes_dtest_opposite
+  dtest "passes with opposites" do
     assert_not(false, true) 
   end
 
-  def it_fails_dtest_opposite
+  dtest "fails with opposites" do
     assert_not(true, true) 
   end
-
-  def its_pending_dtest
+  
+  dtest "pending" do
     pending
     puts "This should not get run"
     assert(true, true)
   end
+
+  dtest "is also pending"
+
 end

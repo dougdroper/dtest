@@ -26,11 +26,11 @@ module Dtest
     end
 
     def fail_result
-      print red "f"
+      print red("f")
     end
 
     def pending_result
-      print yellow "P"
+      print yellow("P")
     end    
 
     def colour_dtest(text, color_code)

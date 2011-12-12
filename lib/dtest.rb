@@ -33,7 +33,7 @@ module Dtest
 
     def run_dtests
       Assertions.get_tests.each do |klass|
-        klass.instance_methods.select{|m| m =~ /_dtest/ }.each do |m|
+        klass.instance_methods.select{|m| m =~ /dtest/ }.each do |m|
           assertion = klass.new
           begin
             assertion.send(m)
