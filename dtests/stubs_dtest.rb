@@ -1,4 +1,4 @@
-require 'lib/assertions'
+require_relative '../lib/dtest/assertions'
 
 class User; end
 

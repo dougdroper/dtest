@@ -1,5 +1,4 @@
-require 'lib/exceptions'
-require 'lib/stubs'
+require_relative 'stubs'
 
 module Dtest
   class Assertions 
